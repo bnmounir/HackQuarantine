@@ -4,22 +4,13 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import * as firebase from 'firebase';
-
-import { firebaseConfig } from './firebaseConfig';
 
 import LoadingScreen from './screens/LoadingScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import NotificationScreen from './screens/NotificationScreen';
-import MessageScreen from './screens/MessageScreen';
 import PostScreen from './screens/PostScreen';
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
 
 const AppContainer = createStackNavigator(
     {
@@ -37,18 +28,7 @@ const AppContainer = createStackNavigator(
                         )
                     }
                 },
-                Message: {
-                    screen: MessageScreen,
-                    navigationOptions: {
-                        tabBarIcon: ({ tintColor }) => (
-                            <Ionicons
-                                name='ios-chatboxes'
-                                size={24}
-                                color={tintColor}
-                            />
-                        )
-                    }
-                },
+
                 Post: {
                     screen: PostScreen,
                     navigationOptions: {
@@ -67,18 +47,7 @@ const AppContainer = createStackNavigator(
                         )
                     }
                 },
-                Notification: {
-                    screen: NotificationScreen,
-                    navigationOptions: {
-                        tabBarIcon: ({ tintColor }) => (
-                            <Ionicons
-                                name='ios-notifications'
-                                size={24}
-                                color={tintColor}
-                            />
-                        )
-                    }
-                },
+
                 Profile: {
                     screen: ProfileScreen,
                     navigationOptions: {
@@ -106,7 +75,8 @@ const AppContainer = createStackNavigator(
                     activeTintColor: '#161f3d',
                     inactiveTintColor: '#b8bbc4',
                     showLabel: false
-                }
+                },
+                initialRouteName: 'Home'
             }
         ),
         postModal: {
@@ -115,8 +85,7 @@ const AppContainer = createStackNavigator(
     },
     {
         mode: 'modal',
-        headerMode: 'none',
-        initialRouteName: 'postModal'
+        headerMode: 'none'
     }
 );
 

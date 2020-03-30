@@ -40,8 +40,17 @@ export default class LoginScreen extends React.Component {
                     source={WAVE}
                     style={styles.image}
                 ></Image>
-                <Text style={styles.greeting}>{`Welcome Back!`}</Text>
-
+                <View
+                    style={{
+                        position: 'absolute',
+                        top: 100,
+                        alignItems: 'center',
+                        width: '100%'
+                    }}
+                >
+                    <Text style={styles.greeting}>Reform</Text>
+                    <Text>Welcome Back!</Text>
+                </View>
                 <View style={styles.errorMessage}>
                     {this.state.errorMessage && (
                         <Text style={styles.error}>
@@ -103,8 +112,8 @@ const styles = StyleSheet.create({
     },
     greeting: {
         marginTop: 32,
-        fontSize: 18,
-        fontWeight: '400',
+        fontSize: 32,
+        fontWeight: '800',
         textAlign: 'center'
     },
     image: {

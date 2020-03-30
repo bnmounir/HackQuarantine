@@ -2,17 +2,19 @@ import React from 'react';
 import {
     View,
     Text,
+    TextInput,
     StyleSheet,
     TouchableOpacity,
     StatusBar,
     Image,
-    LayoutAnimation,
-    SafeAreaView
+    ScrollView
 } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
-import * as firebase from 'firebase';
+import Fire from '../Fire';
+import * as ImagePicker from 'expo-image-picker';
+
 import WAVE from '../assets/wave3.png';
 import { Ionicons } from '@expo/vector-icons';
+import UserPermissions from '../util/UserPermissions';
 
 export default class RegisterScreen extends React.Component {
     static navigationOptions = {
@@ -20,25 +22,30 @@ export default class RegisterScreen extends React.Component {
     };
 
     state = {
-        email: '',
-        name: '',
-        password: '',
+        user: {
+            name: '',
+            email: '',
+            password: '',
+            avatar: undefined
+        },
         errorMessage: null
     };
 
-    handleSignup = () => {
-        const { email, password, name } = this.state;
+    handlePickAvatar = async () => {
+        UserPermissions.getCameraPermission();
 
-        firebase
-            .auth()
-            .createUserWithEmailAndPassword(email, password)
-            .then(userCredentials => {
-                return userCredentials.user.updateProfile({
-                    displayName: name
-                });
-            })
-            .catch(error => this.setState({ errorMessage: error.message }))
-            .finally(() => this.props.navigation.navigate('Loading'));
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3]
+        });
+        if (!result.cancelled) {
+            this.setState({ user: { ...this.state.user, avatar: result.uri } });
+        }
+    };
+
+    handleSignup = () => {
+        Fire.shared.createUser(this.state.user);
     };
 
     render() {
@@ -48,7 +55,7 @@ export default class RegisterScreen extends React.Component {
                 <Image
                     resizeMode='contain'
                     source={WAVE}
-                    style={styles.image}
+                    style={styles.backgroundImage}
                 ></Image>
 
                 <TouchableOpacity
@@ -61,24 +68,56 @@ export default class RegisterScreen extends React.Component {
                         color='#FFF'
                     ></Ionicons>
                 </TouchableOpacity>
-                <Text style={styles.greeting}>{`Join our Community!`}</Text>
 
-                <View style={styles.errorMessage}>
-                    {this.state.errorMessage && (
-                        <Text style={styles.error}>
-                            {this.state.errorMessage}
-                        </Text>
-                    )}
+                <View
+                    style={{
+                        // position: 'absolute',
+                        top: -65,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '15%'
+                    }}
+                >
+                    <Text style={styles.greeting}>Reform</Text>
+                    <Text>Join us!</Text>
+
+                    <TouchableOpacity
+                        style={styles.avatarPlaceHolder}
+                        onPress={this.handlePickAvatar}
+                    >
+                        <Image
+                            source={{ url: this.state.user.avatar }}
+                            style={styles.avatar}
+                        />
+                        <Ionicons
+                            name='ios-add'
+                            size={40}
+                            color='#fff'
+                            style={{ marginTop: 6, marginLeft: 2 }}
+                        />
+                    </TouchableOpacity>
                 </View>
-                <SafeAreaView>
+                <ScrollView>
+                    <View style={styles.errorMessage}>
+                        {this.state.errorMessage && (
+                            <Text style={styles.error}>
+                                {this.state.errorMessage}
+                            </Text>
+                        )}
+                    </View>
                     <View style={styles.form}>
                         <View>
                             <Text style={styles.inputTitle}>First Name</Text>
                             <TextInput
                                 style={styles.input}
                                 autoCapitalize='none'
-                                onChangeText={name => this.setState({ name })}
-                                value={this.state.name}
+                                onChangeText={name =>
+                                    this.setState({
+                                        user: { ...this.state.user, name }
+                                    })
+                                }
+                                value={this.state.user.name}
                             ></TextInput>
                         </View>
                         <View style={{ marginTop: 32 }}>
@@ -86,8 +125,12 @@ export default class RegisterScreen extends React.Component {
                             <TextInput
                                 style={styles.input}
                                 autoCapitalize='none'
-                                onChangeText={email => this.setState({ email })}
-                                value={this.state.email}
+                                onChangeText={email =>
+                                    this.setState({
+                                        user: { ...this.state.user, email }
+                                    })
+                                }
+                                value={this.state.user.email}
                             ></TextInput>
                         </View>
                         <View style={{ marginTop: 32 }}>
@@ -97,33 +140,41 @@ export default class RegisterScreen extends React.Component {
                                 style={styles.input}
                                 autoCapitalize='none'
                                 onChangeText={password =>
-                                    this.setState({ password })
+                                    this.setState({
+                                        user: { ...this.state.user, password }
+                                    })
                                 }
-                                value={this.state.password}
+                                value={this.state.user.password}
                             ></TextInput>
                         </View>
                     </View>
-                </SafeAreaView>
-                <TouchableOpacity
-                    onPress={this.handleSignup}
-                    style={styles.button}
-                >
-                    <Text style={{ color: '#FFF', fontWeight: '500' }}>
-                        Sign Up
-                    </Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('Login')}
-                    style={{ alignSelf: 'center', marginTop: 32 }}
-                >
-                    <Text>
-                        already a Reform user{' '}
-                        <Text style={{ fontWeight: '500', color: '#E9446A' }}>
-                            Login
+                    <TouchableOpacity
+                        onPress={this.handleSignup}
+                        style={styles.button}
+                    >
+                        <Text style={{ color: '#FFF', fontWeight: '500' }}>
+                            Sign Up
                         </Text>
-                    </Text>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => this.props.navigation.navigate('Login')}
+                        style={{ alignSelf: 'center', marginTop: 32 }}
+                    >
+                        <Text>
+                            already a Reform user{' '}
+                            <Text
+                                style={{
+                                    fontWeight: '500',
+                                    color: '#E9446A'
+                                }}
+                            >
+                                Login
+                            </Text>
+                        </Text>
+                    </TouchableOpacity>
+                </ScrollView>
             </View>
         );
     }
@@ -135,11 +186,11 @@ const styles = StyleSheet.create({
     },
     greeting: {
         marginTop: 32,
-        fontSize: 18,
-        fontWeight: '400',
+        fontSize: 32,
+        fontWeight: '800',
         textAlign: 'center'
     },
-    image: {
+    backgroundImage: {
         height: 200,
         alignSelf: 'center'
     },
@@ -190,5 +241,20 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(21, 22, 48, 0.1)',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    avatarPlaceHolder: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#e1e2e6',
+        marginTop: 48,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    avatar: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50
     }
 });
